@@ -10,13 +10,16 @@ class OpenAIClient:
         self.backoff_base = backoff_base
 
     def _retry(self, fn):
-        last_exc: Exception | None = None
+        last_exc: Exception = RuntimeError(
+            f"_retry called with max_retries={self.max_retries}; no attempt was made"
+        )
         for attempt in range(self.max_retries):
             try:
                 return fn()
             except Exception as exc:  # noqa: BLE001 - retry any transient API error
                 last_exc = exc
-                if self.backoff_base:
+                # Don't sleep after the final attempt — we're about to give up.
+                if self.backoff_base and attempt < self.max_retries - 1:
                     time.sleep(self.backoff_base * (2 ** attempt))
         raise last_exc
 

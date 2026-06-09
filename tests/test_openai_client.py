@@ -26,3 +26,21 @@ def test_retry_raises_after_exhausting_attempts():
 
     with pytest.raises(RuntimeError, match="boom"):
         client._retry(always_fail)
+
+
+def test_retry_does_not_sleep_after_final_attempt(monkeypatch):
+    sleeps: list[float] = []
+    monkeypatch.setattr("nlp_qa_system.openai_client.time.sleep", sleeps.append)
+
+    client = OpenAIClient.__new__(OpenAIClient)
+    client.max_retries = 3
+    client.backoff_base = 1.0
+
+    def always_fail():
+        raise RuntimeError("boom")
+
+    with pytest.raises(RuntimeError, match="boom"):
+        client._retry(always_fail)
+
+    # 3 attempts → sleep only between attempts (after #1 and #2), never after the last.
+    assert sleeps == [1.0, 2.0]
