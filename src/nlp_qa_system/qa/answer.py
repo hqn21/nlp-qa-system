@@ -2,6 +2,10 @@ ANSWER_SYSTEM = (
     "Answer the question using ONLY the provided slide excerpts. "
     "Be short and precise; do not over-explain. "
     "Answer in the same language as the question; keep technical terms in their original form. "
+    "Reply in plain text only. Do NOT use any Markdown formatting: "
+    "no headings, bold, italics, bullet or numbered lists, tables, code fences, or backticks. "
+    "Do NOT use LaTeX or math markup; write formulas and symbols in plain Unicode text "
+    "(e.g. α, ≤, x², not \\alpha, \\leq, x^2 or $...$). "
     "If the excerpts do not contain the answer, reply exactly '資料不足'."
 )
 
