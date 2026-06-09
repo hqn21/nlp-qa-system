@@ -23,7 +23,12 @@ def main() -> None:
     if args.cmd == "index":
         build_index(client, config)
     elif args.cmd == "run":
-        dense_idx, bm25_idx, chunks = load_index(config)
+        try:
+            dense_idx, bm25_idx, chunks = load_index(config)
+        except (FileNotFoundError, RuntimeError):
+            raise SystemExit(
+                f"No index found at {config.index_dir}. Run `nlp-qa-system index` first."
+            )
         questions = read_questions(Path(args.input))
         answers = run_batch(client, questions, dense_idx, bm25_idx, chunks, config)
         write_answers(Path(args.output), questions, answers)

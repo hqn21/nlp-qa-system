@@ -23,6 +23,19 @@ def test_run_command_fills_answers(tmp_path, monkeypatch):
     cli.main()
     assert out.read_text(encoding="utf-8").strip() == "q1,ANSWER"
 
+def test_run_without_index_raises_friendly_error(tmp_path, monkeypatch):
+    import pytest
+    inp = tmp_path / "in.csv"
+    inp.write_text("q1,\n", encoding="utf-8")
+    out = tmp_path / "out.csv"
+    # Point index_dir at an empty dir via a Config whose index_dir doesn't exist.
+    monkeypatch.setattr(cli, "OpenAIClient", lambda **kw: object())
+    monkeypatch.setattr(cli, "Config", lambda: __import__("nlp_qa_system.config", fromlist=["Config"]).Config(index_dir=tmp_path / "missing"))
+    monkeypatch.setattr(sys, "argv", ["prog", "run", "--input", str(inp), "--output", str(out)])
+    with pytest.raises(SystemExit) as exc:
+        cli.main()
+    assert "index" in str(exc.value).lower()
+
 def test_index_command_invokes_build(tmp_path, monkeypatch):
     called = {"n": 0}
     monkeypatch.setattr(cli, "OpenAIClient", lambda **kw: object())
