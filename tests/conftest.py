@@ -9,6 +9,8 @@ class FakeClient:
 
     def complete(self, messages, model, temperature=0.0):
         self.calls.append(("complete", model))
+        if not self._completes:
+            raise RuntimeError("FakeClient.complete: response queue is empty")
         return self._completes.pop(0)
 
     def embed(self, texts, model):
