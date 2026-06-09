@@ -21,6 +21,11 @@ def answer_question(client, question, dense_idx, bm25_idx, chunks, config: Confi
 
 
 def run_batch(client, questions, dense_idx, bm25_idx, chunks, config: Config) -> list[str]:
+    """Answer questions in parallel, returning answers in input order.
+
+    ``client`` is called concurrently from up to ``config.query_concurrency``
+    threads, so it must be thread-safe. ``OpenAIClient`` (httpx-backed) is.
+    """
     def work(q):
         return answer_question(client, q, dense_idx, bm25_idx, chunks, config)
 
