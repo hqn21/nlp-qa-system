@@ -24,10 +24,14 @@ class OpenAIClient:
         raise last_exc
 
     def complete(self, messages: list[dict], model: str, temperature: float = 0.0) -> str:
+        kwargs = {
+            "model": model,
+            "messages": messages,
+        }
+        if temperature is not None and temperature > 0:
+            kwargs["temperature"] = temperature
         resp = self._retry(
-            lambda: self._client.chat.completions.create(
-                model=model, messages=messages, temperature=temperature
-            )
+            lambda: self._client.chat.completions.create(**kwargs)
         )
         return resp.choices[0].message.content or ""
 
