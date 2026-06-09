@@ -12,7 +12,7 @@ Candidates:
 
 
 def _parse_int_list(raw: str) -> list[int]:
-    match = re.search(r"\[.*\]", raw, re.DOTALL)
+    match = re.search(r"\[.*?\]", raw, re.DOTALL)
     if not match:
         return []
     try:
@@ -29,7 +29,9 @@ def rerank(client, query: str, candidates: list[str], model: str, top_k: int) ->
         model=model,
     )
     proposed = _parse_int_list(raw)
-    order = [i for i in proposed if 0 <= i < len(candidates)]
+    # Keep valid in-range indices in order, dropping duplicates, so the result
+    # is always a full permutation of 0..n-1 (never drops or repeats a candidate).
+    order = list(dict.fromkeys(i for i in proposed if 0 <= i < len(candidates)))
     seen = set(order)
     order.extend(i for i in range(len(candidates)) if i not in seen)
     return order
