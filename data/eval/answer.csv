@@ -1,38 +1,36 @@
-﻿自然語言處理（NLP）是什麼？請列舉兩個常見的 NLP 應用。,"自然語言處理（NLP）是 AI 的一個分支，讓電腦理解、解釋並生成 human language，結合 linguistics、machine learning 和 computer science。
+﻿自然語言處理（NLP）是什麼？請列舉兩個常見的 NLP 應用。,"自然語言處理（NLP）是人工智慧（AI）的一個分支，讓電腦能理解、詮釋並生成human language，結合linguistics、machine learning和computer science。
 
-常見應用包括 Spam Detection 和 Predictive Text。"
-Bag of Words 如何將文字轉換成向量？這種表示法會忽略哪些重要資訊？,"Bag of Words 先建立 training corpus 中的 vocabulary，令 V = unique words 數量。每個 document 轉成大小為 V 的 vector，每個 component 存放對應 word 在 document 中出現的 count。
+兩個常見應用：Spam Detection、Predictive Text。"
+Bag of Words 如何將文字轉換成向量？這種表示法會忽略哪些重要資訊？,"Bag of Words 先建立訓練語料中的 vocabulary，令 V = unique words 數量；每篇文件被轉成大小為 V 的向量，每個 component 存放對應 word 在文件中出現的 count。
 
-這種表示法會忽略 word order，也就是文字的 sequential 資訊；因此可能忽略由詞語順序帶來的 meaning。"
-TF-IDF 如何衡量詞彙的重要性？某個詞在單一文件中常見、但在整個語料庫中少見時，其權重通常會如何變化？,"TF-IDF 以 tf(t,d) × idf(t) 衡量詞彙重要性，其中 tf 是詞 t 在文件 d 中出現的次數，idf = log N/N(t)，反映詞 t 出現在多少文件中。
+這種表示法忽略 word order，也就是文字的 sequential 資訊；因此可能忽略由詞序帶來的 meaning，例如 “Dog Toy” 和 “Toy Dog” 意義不同。"
+TF-IDF 如何衡量詞彙的重要性？某個詞在單一文件中常見、但在整個語料庫中少見時，其權重通常會如何變化？,"TF-IDF 以 tf(t,d) × idf(t) 衡量詞彙重要性，其中 tf 是詞 t 在文件 d 中出現的次數，idf = log(N / N(t)) 衡量詞 t 出現在多少文件中。
 
-若某詞在單一文件中常見、但在整個語料庫中少見，tf 高且 idf 高，因此 TF-IDF 權重通常會變高。"
-Markov Property 在語言模型中做了什麼假設？這項假設如何降低序列機率估計的複雜度？,"Markov Property 假設下一個詞/狀態的機率只依賴前一個詞/狀態，而不依賴更早的歷史：
+若某詞在單一文件中常見但在整個語料庫中少見，tf 高且 idf 高，因此 TF-IDF 權重通常會變高。"
+Markov Property 在語言模型中做了什麼假設？這項假設如何降低序列機率估計的複雜度？,"Markov Property 假設下一個狀態/字的機率只依賴目前狀態/前一個字，不依賴更早的歷史：
 
 p(x_t | x_{t-1}, x_{t-2}, …) = p(x_t | x_{t-1})
 
-因此序列機率可由
+因此序列的 joint probability 可簡化為：
 
-p(x_1, …, x_T) = p(x_1)∏_{t=2}^{T} p(x_t | x_{t-1})
+p(x₁, …, x_T) = p(x₁)∏_{t=2}^{T} p(x_t | x_{t-1})
 
-來計算，不需要估計完整歷史條件機率 p(x_t | x_{t-1}, …, x_1)。
-
-在語言模型中，原本例如 p(x_10 | x_9, …, x_1) 若每個詞有 2000 種可能，需要估計約 2000¹⁰ 個機率；使用 Markov assumption 後，只需估計相鄰詞之間的 transition probabilities，降低複雜度並減少 data sparsity 問題。"
-Add-One Smoothing 為什麼能避免未曾出現在訓練資料中的轉移，使整個序列機率變成 0？,"因為 Add-One Smoothing 會給每個可能的 transition 加上 1 個「fake count」：
+在語言模型中，原本估計 p(x₁₀ | x₉, …, x₁) 可能需要 2000¹⁰ 個機率；套用 Markov Property 後，只需估計相鄰詞的 transition probability A_{ij} = p(s_t = j | s_{t-1} = i)，降低 parameter explosion 並緩解 data sparsity。"
+Add-One Smoothing 為什麼能避免未曾出現在訓練資料中的轉移，使整個序列機率變成 0？,"Add-One Smoothing 會對每個可能的 (i, j) transition 加一個 fake count 1：
 
 Âij = (count(i → j) + 1) / (count(i) + M)
 
-所以即使某個轉移從未出現在訓練資料中，count(i → j) = 0，機率仍是 1 / (count(i) + M)，不是 0。這樣在計算序列機率時，不會因為某個 transition 機率為 0 而讓整個結果變成 0。"
-在垃圾郵件分類任務中，Precision、Recall 與 F1-score 分別衡量什麼？,"Precision：預測為 spam 的 email 中有多少實際上是 spam。
-Recall：實際 spam email 中有多少被偵測出來。
-F1-score：Precision 與 Recall 之間的平衡。"
-為什麼 RNN 比一般前饋神經網路更適合處理文字序列？RNN 又有哪些主要限制？,"RNN 比一般前饋 ANN 更適合處理文字序列，因為 RNN 會把 hidden state 傳到下一個時間點，讓前面的詞能影響後面的輸出，因此能捕捉 word order、context 和 dependencies；而 ANN 對每個詞獨立分類，不會在詞之間傳遞 context。
+因此即使某個轉移在訓練資料中從未出現，count(i → j) = 0，仍會得到非零機率 1 / (count(i) + M)。所以在計算序列機率時，不會因為某個 transition 機率為 0 而讓整個乘積變成 0。"
+在垃圾郵件分類任務中，Precision、Recall 與 F1-score 分別衡量什麼？,Precision 衡量預測為 spam 的郵件中有多少實際是 spam。Recall 衡量實際 spam 郵件中有多少被偵測出來。F1-score 衡量 Precision 與 Recall 之間的平衡。
+為什麼 RNN 比一般前饋神經網路更適合處理文字序列？RNN 又有哪些主要限制？,"RNN 比一般前饋神經網路更適合處理文字序列，因為它會把 hidden state 傳遞到下一個時間點，讓前面的詞影響後面的輸出，因此能捕捉 word order、context 和 dependencies；一般 ANN 對每個詞獨立分類，不會在詞之間傳遞 context。
 
-主要限制是 vanishing gradients，導致難以學習 long-range dependencies、早期輸入容易被忘記；也可能有梯度爆炸，造成模型不穩定甚至無法訓練；另外 RNN 每一步依賴前一步，所以 slow to train 且 not parallelizable。"
-Self-Attention 中的 Query、Key 與 Value 各自扮演什麼角色？,"Query：我要注意什麼？
-Key：我是什麼樣的資訊？
-Value：我提供什麼資訊？"
-RAG 系統從使用者提出問題到生成答案，通常會經過哪些主要步驟？,輸入查詢 → 向量化 → 近似查找相關內容 → 將檢索內容與使用者問題一起輸入 LLM → 回答生成
-Text-to-SQL 系統為什麼需要理解資料庫 Schema？若 Schema 理解錯誤，可能產生什麼問題？,"Text-to-SQL 系統需要理解資料庫 Schema，才能識別資料庫中的表格、欄位及其關聯，將自然語言詞彙正確對應到資料庫欄位，確保 SQL 查詢能正確匹配資料庫架構。
+RNN 的主要限制是 vanishing gradients，容易忘記早期輸入、難以學習 long-range dependencies；也可能有 gradient explosion，導致模型不穩定；此外每一步依賴前一步，所以 slow to train 且 not parallelizable。"
+Self-Attention 中的 Query、Key 與 Value 各自扮演什麼角色？,Query (Q)：我要注意什麼；Key (K)：我是什麼樣的資訊，用來匹配；Value (V)：我提供什麼資訊，用來加權平均後重建表示。
+RAG 系統從使用者提出問題到生成答案，通常會經過哪些主要步驟？,輸入查詢 → 向量化 → 從外部資料庫近似查找語意相似的相關內容 → 將檢索到的內容與使用者問題一起輸入 LLM → 生成回答
+Text-to-SQL 系統為什麼需要理解資料庫 Schema？若 Schema 理解錯誤，可能產生什麼問題？,"Text-to-SQL 系統需要理解資料庫 Schema，才能識別正確的表格、欄位及其關聯，讓生成的 SQL 能正確匹配資料庫架構並可執行。
 
-若 Schema 理解錯誤，可能會錯誤選擇欄位或表，產生語法上符合結構但無法執行的 SQL，也可能出現 Wrong cols、Wrong tables、Wrong entities、JOIN 或 GROUP-BY 錯誤。"
+若 Schema 理解錯誤，模型可能會選錯欄位或表格，產生語法看似正確但無法執行的 SQL，也可能造成 Schema-linking、JOIN、GROUP-BY 等錯誤。"
+加選的順序是什麼,資工系博士 → 資工系碩二 → 資工系碩一 → 資工系大四 → 外系研究生 → 外系大四生
+哪時候期中考,4/22（三）14:10 ~ 16:00
+哪時候期末考,6/3 (三)14:10 ~ 16:00
+老師的電子郵件是什麼,albert.yang@nchu.edu.tw
