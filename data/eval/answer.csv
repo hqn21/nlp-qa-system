@@ -1,0 +1,89 @@
+﻿自然語言處理（NLP）是什麼？請列舉兩個常見的 NLP 應用。,"自然語言處理（NLP, Natural Language Processing）是人工智慧（AI）的一個分支，讓電腦能理解、解讀並生成human language，結合 linguistics、machine learning 和 computer science。
+
+常見應用：
+- Spam Detection
+- Predictive Text"
+Bag of Words 如何將文字轉換成向量？這種表示法會忽略哪些重要資訊？,"Bag of Words 會先建立 vocabulary，令 \(V\) = training corpus 中 unique words 數量；每個 document 轉成大小為 \(V\) 的向量，向量每個 component 表示對應 word 在文件中的 count。
+
+它會忽略文字的順序（word order / sequence），也就是把文字當成 unordered collection；但 word order 會影響 meaning，例如 “Dog Toy” 和 “Toy Dog”。"
+TF-IDF 如何衡量詞彙的重要性？某個詞在單一文件中常見、但在整個語料庫中少見時，其權重通常會如何變化？,"TF-IDF 以
+
+\[
+tfidf(t,d)=tf(t,d)\times idf(t)
+\]
+
+衡量詞彙重要性，其中：
+
+- \(tf(t,d)\)：詞 \(t\) 在文件 \(d\) 中出現次數
+- \(idf(t)=\log \frac{N}{N(t)}\)：詞 \(t\) 出現在越少文件中，IDF 越高
+
+因此，若某詞在單一文件中常見、但在整個語料庫中少見，通常會有較高的 TF-IDF 權重。"
+Markov Property 在語言模型中做了什麼假設？這項假設如何降低序列機率估計的複雜度？,"Markov Property 在語言模型中假設：
+
+\[
+p(x_t \mid x_{t-1}, x_{t-2}, \cdots)=p(x_t \mid x_{t-1})
+\]
+
+也就是下一個 word/state 只依賴前一個 word/state，不依賴更早的歷史。
+
+因此序列機率可由
+
+\[
+p(x_1,\ldots,x_T)=p(x_1)\prod_{t=2}^{T}p(x_t\mid x_{t-1})
+\]
+
+計算，而不需要估計
+
+\[
+p(x_t\mid x_{t-1},x_{t-2},\ldots,x_1)
+\]
+
+這把原本像 \(p(x_{10}\mid x_9,\ldots,x_1)\) 需要估計大量組合（例如 \(2000^{10}\)）的問題，簡化成只估計相鄰 word/state 的 transition probability，降低 data sparsity 和計算複雜度。"
+Add-One Smoothing 為什麼能避免未曾出現在訓練資料中的轉移，使整個序列機率變成 0？,"因為 Add-One Smoothing 會對每個可能的 \((i,j)\) transition 加上一個 “fake count” 1：
+
+\[
+\hat{A}_{ij}=\frac{count(i\to j)+1}{count(i)+M}
+\]
+
+所以即使某個 transition 沒出現在訓練資料中，\(count(i\to j)=0\)，仍會得到非零的小機率，不會讓
+
+\[
+p(s_{1...T})=\pi_{s_1}\prod_{t=2}^{T}A_{s_{t-1},s_t}
+\]
+
+因為某個 \(A_{ij}=0\) 而整體變成 0。"
+在垃圾郵件分類任務中，Precision、Recall 與 F1-score 分別衡量什麼？,"- Precision：預測為 spam 的 emails 中，有多少實際上是 spam。
+- Recall：實際 spam emails 中，有多少被偵測出來。
+- F1-score：Precision 與 Recall 的平衡指標。"
+為什麼 RNN 比一般前饋神經網路更適合處理文字序列？RNN 又有哪些主要限制？,"RNN 比一般前饋 ANN 更適合文字序列，因為：
+
+- ANN 對每個 word 獨立分類，不會在 words 之間傳遞 context。
+- RNN 會把 hidden state 從前一個 time step 傳到下一個 time step，因此能捕捉 word order、sequence context 和 dependencies。
+- 早期 words 的資訊可以影響後面的 output。
+
+RNN 的主要限制：
+
+- **Vanishing gradients**：難以學習 long-range dependencies，早期 inputs 可能被「忘記」。
+- **Gradient explosion**：參數連乘可能造成模型不穩定、難以訓練。
+- **Slow to train / not parallelizable**：每一步依賴前一步，難以並行計算。
+- 長序列中距離很遠的詞之間的依賴關係較難捕捉。"
+Self-Attention 中的 Query、Key 與 Value 各自扮演什麼角色？,"在 Self-Attention 中，每個 token 都會變成三個向量：
+
+- **Query (Q)**：我要注意什麼？代表當前 token 想找的特徵。
+- **Key (K)**：我是什麼樣的資訊？代表每個 token 的特徵或標籤。
+- **Value (V)**：我提供什麼資訊？代表實際內容，會依 attention weights 被加權平均。"
+RAG 系統從使用者提出問題到生成答案，通常會經過哪些主要步驟？,"通常步驟是：
+
+1. 使用者輸入查詢  
+2. 將查詢向量化（embedding）  
+3. Retriever 從外部資料庫／向量資料庫中近似查找語意相似內容  
+4. 將檢索到的內容與原始問題一起輸入 LLM  
+5. Generator 產生回答"
+Text-to-SQL 系統為什麼需要理解資料庫 Schema？若 Schema 理解錯誤，可能產生什麼問題？,"Text-to-SQL 系統需要理解資料庫 Schema，才能識別正確的資料表與欄位，讓 SQL 查詢能匹配資料庫架構，並理解欄位之間的關係與欄位名稱意義。
+
+若 Schema 理解錯誤，可能會：
+
+- 選錯欄位或資料表
+- 產生錯誤的 schema-linking
+- JOIN 錯誤
+- 生成語法上可能正確，但無法執行的 SQL"
