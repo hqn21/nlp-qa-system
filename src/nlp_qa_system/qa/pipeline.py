@@ -23,11 +23,16 @@ def answer_question(client, question, dense_idx, bm25_idx, chunks, config: Confi
 def run_batch(client, questions, dense_idx, bm25_idx, chunks, config: Config) -> list[str]:
     """Answer questions in parallel, returning answers in input order.
 
-    ``client`` is called concurrently from up to ``config.query_concurrency``
-    threads, so it must be thread-safe. ``OpenAIClient`` (httpx-backed) is.
+    client is called concurrently from up to config.query_concurrency threads,
+    so it must be thread-safe. OpenAIClient (httpx-backed) is. A question that
+    fails (after the client's own retries) yields the '資料不足' fallback so the
+    batch always completes and every row gets written.
     """
     def work(q):
-        return answer_question(client, q, dense_idx, bm25_idx, chunks, config)
+        try:
+            return answer_question(client, q, dense_idx, bm25_idx, chunks, config)
+        except Exception:
+            return "資料不足"
 
     with ThreadPoolExecutor(max_workers=config.query_concurrency) as ex:
         return list(ex.map(work, questions))

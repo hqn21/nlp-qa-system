@@ -33,3 +33,16 @@ def test_run_batch_preserves_order():
     )
     answers = run_batch(client, ["q1", "q2"], dense, bm25, chunks, config)
     assert answers == ["A1", "A2"]
+
+def test_run_batch_returns_fallback_on_question_error():
+    chunks, dense, bm25 = _fixture()
+    config = Config(query_concurrency=1)
+    # q1 consumes [rerank, answer]; q2's queue is then empty so FakeClient raises.
+    client = FakeClient(
+        complete_responses=["[0]", "A1"],
+        embeddings={"q1": [1.0, 0.0], "q2": [0.0, 1.0]},
+    )
+    answers = run_batch(client, ["q1", "q2"], dense, bm25, chunks, config)
+    assert answers[0] == "A1"
+    assert answers[1] == "資料不足"   # fallback, not a crash
+    assert len(answers) == 2
