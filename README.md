@@ -50,7 +50,7 @@ FAISS dense index                  BM25Plus sparse index
               Grounded answer generation
 ```
 
-For each question, the system retrieves candidates from both indexes, fuses the rankings, reranks the best candidates, and answers using only the selected slide excerpts. When the retrieved material does not contain enough information, the system returns `資料不足`.
+For each question, the system retrieves candidates from both indexes, fuses the rankings, reranks the best candidates, and answers using only the selected slide excerpts. When the retrieved material does not contain enough information, the system returns a response indicating that the available information is insufficient.
 
 ## Requirements
 
@@ -185,7 +185,7 @@ Example:
 
 ```csv
 "What is the difference between CBOW and Skip-gram?",
-"Transformer 的 self-attention 是什麼？",
+"How does self-attention work in a Transformer?",
 "What is BM25?",
 ```
 
@@ -364,7 +364,7 @@ The API account must have access to every model configured in `src/nlp_qa_system
 
 Lower `index_concurrency` or `query_concurrency` in `config.py`. The client retries failed API calls with exponential backoff, but sustained rate limits may still require lower concurrency.
 
-### The output repeatedly contains `資料不足`
+### The output repeatedly indicates that the available information is insufficient
 
 Check that:
 
@@ -373,9 +373,9 @@ Check that:
 - The generated Markdown files in `data/index/parsed/` contain the expected content.
 - The question can be answered from the indexed course materials.
 
-### The CSV displays garbled Chinese text
+### The CSV displays garbled text
 
-The generated output uses UTF-8 with a byte order mark. When importing the file manually, select UTF-8 as the encoding rather than a legacy regional encoding.
+The generated output uses UTF-8 with a byte order mark. When importing the file manually, select UTF-8 instead of a legacy encoding.
 
 ## License
 
