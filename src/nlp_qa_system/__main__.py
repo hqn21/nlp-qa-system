@@ -1,6 +1,8 @@
 import argparse
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from nlp_qa_system.config import Config
 from nlp_qa_system.indexing.build_index import build_index, load_index
 from nlp_qa_system.io.csv_io import read_questions, write_answers
@@ -9,6 +11,9 @@ from nlp_qa_system.qa.pipeline import run_batch
 
 
 def main() -> None:
+    # Load OPENAI_API_KEY (and any other vars) from a local .env if present.
+    load_dotenv()
+
     parser = argparse.ArgumentParser(prog="nlp-qa-system")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("index", help="Build the offline index (untimed).")
