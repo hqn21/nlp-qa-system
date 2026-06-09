@@ -4,7 +4,14 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "faiss-cpu>=1.14.2",
+    "jieba>=0.42.1",
+    "numpy>=2.4.6",
+    "openai>=2.41.0",
+    "pymupdf>=1.27.2.3",
+    "rank-bm25>=0.2.2",
+]
 
 [project.scripts]
 nlp-qa-system = "nlp_qa_system.__main__:main"
@@ -15,3 +22,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nlp_qa_system"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
