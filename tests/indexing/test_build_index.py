@@ -1,3 +1,4 @@
+import json
 import fitz
 import numpy as np
 from nlp_qa_system.config import Config
@@ -28,6 +29,28 @@ def test_build_then_load_index(tmp_path):
     assert (config.index_dir / "manifest.json").exists()
     hit = dense_idx.search(np.array([1.0, 0.0], dtype="float32"), top_n=1)
     assert hit[0][0] == 0
+
+def test_build_index_rebuilds_when_ready_marker_missing(tmp_path):
+    slides = tmp_path / "slides"
+    slides.mkdir()
+    _make_pdf(slides / "c0.pdf")
+    config = Config(slides_dir=slides, index_dir=tmp_path / "index")
+
+    client1 = FakeClient(complete_responses=["# page md", '["alpha"]'],
+                         embeddings={"alpha": [1.0, 0.0]})
+    build_index(client1, config)
+
+    # Simulate a crash that left manifest + parsed md + artifacts but no ready marker.
+    (config.index_dir / "index.ready").unlink()
+
+    # Second run: md is cached (no vision call), but artifacts must be rebuilt,
+    # so the chunk-list response IS needed; vision response is NOT queued.
+    client2 = FakeClient(complete_responses=['["alpha"]'],
+                         embeddings={"alpha": [1.0, 0.0]})
+    build_index(client2, config)   # must NOT early-return; must rebuild artifacts
+    assert (config.index_dir / "index.ready").exists()
+    # exactly one complete call (the chunking), no vision call:
+    assert [k for k, _ in client2.calls if k == "complete"] == ["complete"]
 
 def test_build_index_skips_unchanged_pdf_on_second_run(tmp_path):
     slides = tmp_path / "slides"

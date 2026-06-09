@@ -1,3 +1,4 @@
+import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -22,6 +23,7 @@ def _paths(config: Config) -> dict[str, Path]:
         "embeddings": d / "embeddings.npy",
         "faiss": d / "index.faiss",
         "bm25": d / "bm25.pkl",
+        "ready": d / "index.ready",
     }
 
 
@@ -51,7 +53,8 @@ def build_index(client, config: Config) -> None:
         save_manifest(p["manifest"], manifest)
 
     artifacts_exist = all(p[k].exists() for k in ("chunks", "faiss", "bm25"))
-    if not any_changed and artifacts_exist:
+    ready_matches = p["ready"].exists() and json.loads(p["ready"].read_text(encoding="utf-8")) == manifest
+    if not any_changed and artifacts_exist and ready_matches:
         return
 
     chunks: list[Chunk] = []
@@ -63,6 +66,7 @@ def build_index(client, config: Config) -> None:
     np.save(p["embeddings"], embeddings)
     DenseIndex.build(embeddings).save(p["faiss"])
     BM25Index.build([c.text for c in chunks]).save(p["bm25"])
+    p["ready"].write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
 
 
 def load_index(config: Config) -> tuple[DenseIndex, BM25Index, list[Chunk]]:
